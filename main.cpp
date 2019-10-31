@@ -1,5 +1,8 @@
 #include <iostream>
 #include <vector>
+#include <functional>
+#include <fstream>
+#include <ctime>
 using namespace std;
 
 template <class T>
@@ -19,23 +22,35 @@ public:
 
 template <class T>
 class Matrix {
-private:
+public:
     Node<T>* x;
     Node<T>* y;
     int columns;
     int rows;
-public:
     Matrix() : columns(0), rows(0){
         x = new Node<T>(0,0);
         y = new Node<T>(0,0);
     }
-//    Matrix(int n, int m) : columns(n), rows(m){}
-    void insert (int _posX, int _posY, T _data) {
-        Node<T>* new_node = new Node<T>(_posX, _posY, _data);
+    ~Matrix(){}
+    void resize(int sizeX = 0,int sizeY = 0){
+        Node<T>* temp_1 = x;
+        Node<T>* temp_2 = y;
+        //------------------------------------------------------------
+        while (temp_1 != nullptr) {
+            temp_2 = temp_1;
+            while (temp_2 != nullptr && temp_2->down != nullptr) {
+                temp_2 = temp_2->down;
+                if(sizeX < temp_2->posX){sizeX = temp_2->posX;}
+                if(sizeY < temp_2->posY){sizeY = temp_2->posY;}
+            }
+            temp_1 = temp_1->next;
+        }
+        //------------------------------------------------------------
         Node<T>* temp = x;
+        //------------------------------------------------------------
         int i = 1;
-        if(columns <= _posX){
-            columns = _posX+1;
+        if(columns < sizeX+1){
+            columns = sizeX+1;
             while (temp->next) {
                 temp = temp->next;
                 i++;
@@ -45,11 +60,25 @@ public:
                 temp = temp->next;
                 i++;
             }
+        } else if (columns > sizeX+1) {
+            columns = sizeX+1;
+            while (temp->next->posX < columns) {
+                temp = temp->next;
+            }
+            Node<T>* temp_prev = temp;
+            temp = temp->next;
+            temp_prev->next = nullptr;
+            while (temp->next) {
+                temp_prev = temp;
+                temp = temp->next;
+                delete temp_prev;
+            }
         }
+        //------------------------------------------------------------
         i = 1;
         temp = y;
-        if(rows <= _posY){
-            rows = _posY+1;
+        if(rows < sizeY+1){
+            rows = sizeY+1;
             while (temp->down) {
                 temp = temp->down;
                 i++;
@@ -59,9 +88,29 @@ public:
                 temp = temp->down;
                 i++;
             }
+        } else if (rows > sizeY+1) {
+            rows = sizeY+1;
+            while (temp->down->posY < rows) {
+                temp = temp->down;
+            }
+            Node<T>* temp_prev = temp;
+            temp = temp->down;
+            temp_prev->down = nullptr;
+            while (temp->down) {
+                temp_prev = temp;
+                temp = temp->down;
+                delete temp_prev;
+            }
         }
+    }
+    void insert (int _posY, int _posX, T _data) {
+        Node<T>* new_node = new Node<T>(_posX, _posY, _data);
+        //------------------------------------------------------------
+        resize(_posX,_posY);
+        //------------------------------------------------------------
         Node<T>* temp_1 = x;
         Node<T>* temp_2 = y;
+        //------------------------------------------------------------
         while (temp_1 != nullptr && temp_1->posX != new_node->posX) {
             temp_1 = temp_1->next;
         }
@@ -71,7 +120,8 @@ public:
         Node<T>* down_temp = temp_1->down;
         temp_1->down = new_node;
         new_node->down = down_temp;
-        while (temp_2 != nullptr && temp_2->posY < new_node->posY) {
+        //------------------------------------------------------------
+        while (temp_2 != nullptr && temp_2->posY != new_node->posY) {
             temp_2 = temp_2->down;
         }
         while (temp_2->next != nullptr && temp_2->posX < new_node->posX) {
@@ -81,23 +131,56 @@ public:
         temp_2->next = new_node;
         new_node->next = next_temp;
     }
-    ~Matrix(){}
-/*
-    Matrix& operator << (const T& _value){
-        this->insert(_value[0]);
-        return *this;
-    }*/
+    void erase (int _posY, int _posX) {
+        Node<T>* temp_1 = x;
+        Node<T>* temp_2 = y;
+        //------------------------------------------------------------
+        while (temp_1 != nullptr && temp_1->next != nullptr && temp_1->posX != _posX) {
+            temp_1 = temp_1->next;
+        }
+        while (temp_1 != nullptr && temp_1->down != nullptr && temp_1->down->posY < _posY ) {
+            temp_1 = temp_1->down;
+        }
+        if(temp_1 != nullptr && temp_1->down != nullptr && temp_1->down->posY == _posY){
+            Node<T>* down_temp = temp_1->down;
+            temp_1->down = temp_1->down->down;
+            delete down_temp;
+        }
+        //------------------------------------------------------------
+        while (temp_2 != nullptr && temp_2->down != nullptr && temp_2->posY < _posY) {
+            temp_2 = temp_2->down;
+        }
+        while (temp_2 != nullptr && temp_2->next != nullptr && temp_2->next->posX < _posX) {
+            temp_2 = temp_2->next;
+        }
+        if(temp_2 != nullptr && temp_2->next != nullptr && temp_2->next->posX == _posX){
+            Node<T>* next_temp = temp_2->next;
+            temp_2->next = temp_2->next->next;
+            delete next_temp;
+        }
+        //------------------------------------------------------------
+        resize();
+    }
+
+    static Matrix<T> identity(int _posY, int _posX){
+        Matrix<T> matrix;
+        for(int i = 0; i < _posY && i < _posX; i++)
+            matrix.insert(i,i,1);
+        return matrix;
+    }
 
     template <typename _T>
     inline friend ostream& operator << (ostream& os,  Matrix<_T>& matrix){
         _T matrix_print[matrix.columns][matrix.rows];
-        Node<T>* temp_1 = matrix.x;
-        Node<T>* temp_2;
+        Node<_T>* temp_1 = matrix.x;
+        Node<_T>* temp_2;
+        //------------------------------------------------------------
         for(int i = 0; i < matrix.columns; i++){
             for(int j = 0; j < matrix.rows; j++){
                 matrix_print[i][j] = NULL;
             }
         }
+        //------------------------------------------------------------
         while (temp_1 != nullptr) {
             temp_2 = temp_1;
             while (temp_2->down != nullptr) {
@@ -106,44 +189,46 @@ public:
             }
             temp_1 = temp_1->next;
         }
-        for(int i = 0; i < matrix.columns; i++){
-            for(int j = 0; j < matrix.rows; j++){
-                os << matrix_print[i][j] << ' ';
+        //------------------------------------------------------------
+        for(int i = 0; i < matrix.rows; i++){
+            for(int j = 0; j < matrix.columns; j++){
+                os << matrix_print[j][i] << ' ';
             }
-            os << endl << endl;
+            os << endl;
         }
+        //------------------------------------------------------------
         return os;
     }
 };
 
+/*
+Matrix<double>& mult (Matrix<double>& m1,Matrix<double>& m2){
+    Matrix<double> resultado;
+    //------------------------------------------------------------
+    resultado.insert(1,1,1);
+    return resultado;
+}*/
+
 int main( int, char * [])
 {
-    Matrix<double> m1;
-    m1.insert(2,0,0);
-    m1.insert(8,0,1);
-    m1.insert(6,1,0);
-    m1.insert(100,2,20);
-    //m1 << (2,0,0) << (8,0,1) << (6,1,0) << (100,2,20);  // Insert
-    cout << m1 << endl; // print in console
-    //m1 >> (100,2,20); // delete
-
-    //Matrix<double> m2 = Matrix<double>::identity(100,100);
-    //ofstream _out("res.txt");
-    //_out << m2 << endl; // print in file
-    //_out.close();
-
-    //cout << mult(m1 * m2) << endl; //  mutiplication
-    //cout << add(m1 + m2) << endl; // addition
+    srand(time(NULL));
+    Matrix<double> m1 = Matrix<double>::identity(10,10);
+    /*for(int i= 0; i < 10; i++) //es de 100
+        m1.insert(rand()%10,rand()%10,rand()%25);//(f,c,val)
+    */cout << m1 << endl; // print in console
+    m1.erase(100,2); // delete(f,c)
+    Matrix<double> m2 = Matrix<double>::identity(m1.rows,m1.columns); //f,c
+    ofstream _out("res.txt");
+    _out << m2 << endl; // print in file
+    _out.close();
+    //cout << mult(m1,m2) << endl; //  mutiplication
+    //cout << add(m1,m2) << endl; // addition
     //cout << transpose(m1) << endl; // transpose
-
-    //cout << inv(m1 * m2) << endl; // Inversa - Extra!
-
-/*	  // Cargar desde imagen -  Extra (Usar CImg.h)
-    Matrix<double> m_image = load_from_image("myimage.jpg");
-    m_image = transpose(m_image;
-    ofstream _out_i("res.txt");
-    _out_i << m_image;
-    _out_i.close()
-*/
+    //cout << inv(m1) << endl; // Inversa - Extra!
+    // Cargar desde imagen -  Extra (Usar CImg.h)
+    //Matrix<double> m_image = load_from_image("lenna.jpg");//512x512
+    //ofstream _out_i("res.txt");
+    //_out_i << m_image;
+    //_out_i.close()
     return 1;
 }
