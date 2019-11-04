@@ -170,7 +170,7 @@ public:
     }
 
     template <typename _T>
-    inline friend ostream& operator << (ostream& os,  Matrix<_T>& matrix){
+    inline friend ostream& operator << (ostream& os,  Matrix<_T> matrix){
         _T matrix_print[matrix.columns][matrix.rows];
         Node<_T>* temp_1 = matrix.x;
         Node<_T>* temp_2;
@@ -201,29 +201,179 @@ public:
     }
 };
 
-/*
-Matrix<double>& mult (Matrix<double>& m1,Matrix<double>& m2){
+
+Matrix<double> mult (Matrix<double> m1,Matrix<double> m2){
     Matrix<double> resultado;
-    //------------------------------------------------------------
-    resultado.insert(1,1,1);
+    double matrix_mult[m2.columns][m1.rows];
+    double matrix_m1[m1.columns][m1.rows];
+    double matrix_m2[m2.columns][m2.rows];
+    Node<double>* temp_1 = m1.x;
+    Node<double>* temp_2;
+    if(m1.columns == m2.rows) {
+        //------------------------------------------------------------
+        for (int i = 0; i < m1.columns; i++) {
+            for (int j = 0; j < m1.rows; j++) {
+                matrix_m1[i][j] = 0;
+            }
+        }
+        //------------------------------------------------------------
+        while (temp_1 != nullptr) {
+            temp_2 = temp_1;
+            while (temp_2->down != nullptr) {
+                temp_2 = temp_2->down;
+                matrix_m1[temp_2->posX][temp_2->posY] = temp_2->data;
+            }
+            temp_1 = temp_1->next;
+        }
+        //------------------------------------------------------------
+        temp_1 = m2.x;
+        temp_2;
+        //------------------------------------------------------------
+        for (int i = 0; i < m2.columns; i++) {
+            for (int j = 0; j < m2.rows; j++) {
+                matrix_m2[i][j] = 0;
+            }
+        }
+        //------------------------------------------------------------
+        while (temp_1 != nullptr) {
+            temp_2 = temp_1;
+            while (temp_2->down != nullptr) {
+                temp_2 = temp_2->down;
+                matrix_m2[temp_2->posX][temp_2->posY] = temp_2->data;
+            }
+            temp_1 = temp_1->next;
+        }
+        //------------------------------------------------------------
+        double cont;
+        //------------------------------------------------------------
+        for (int i = 0; i < m2.columns; i++) {
+            for (int j = 0; j < m1.rows; j++) {
+                matrix_mult[i][j] = 0;
+            }
+        }
+        //------------------------------------------------------------
+        for (int i = 0; i < m1.rows; i++) {
+            for (int j = 0; j < m2.columns; j++) {
+                cont = 0;
+                for (int k = 0; k < m1.columns; k++) {
+                    cont += (matrix_m1[k][i] * matrix_m2[j][k]);
+                }
+                matrix_mult[j][i] = cont;
+            }
+        }
+        //------------------------------------------------------------
+        for (int i = 0; i < m1.rows; i++) {
+            for (int j = 0; j < m2.columns; j++) {
+                if (matrix_mult[j][i] != 0) {
+                    resultado.insert(i, j, matrix_mult[j][i]);
+                }
+            }
+        }
+        //------------------------------------------------------------
+    }
     return resultado;
-}*/
+}
+
+Matrix<double> add (Matrix<double> m1,Matrix<double> m2){
+    Matrix<double> resultado;
+    double matrix_mult[m2.columns][m1.rows];
+    double matrix_m1[m1.columns][m1.rows];
+    double matrix_m2[m2.columns][m2.rows];
+    Node<double>* temp_1 = m1.x;
+    Node<double>* temp_2;
+    if(m1.columns == m2.columns && m1.rows == m2.rows) {
+        //------------------------------------------------------------
+        for (int i = 0; i < m1.columns; i++) {
+            for (int j = 0; j < m1.rows; j++) {
+                matrix_m1[i][j] = 0;
+            }
+        }
+        //------------------------------------------------------------
+        while (temp_1 != nullptr) {
+            temp_2 = temp_1;
+            while (temp_2->down != nullptr) {
+                temp_2 = temp_2->down;
+                matrix_m1[temp_2->posX][temp_2->posY] = temp_2->data;
+            }
+            temp_1 = temp_1->next;
+        }
+        //------------------------------------------------------------
+        temp_1 = m2.x;
+        temp_2;
+        //------------------------------------------------------------
+        for (int i = 0; i < m2.columns; i++) {
+            for (int j = 0; j < m2.rows; j++) {
+                matrix_m2[i][j] = 0;
+            }
+        }
+        //------------------------------------------------------------
+        while (temp_1 != nullptr) {
+            temp_2 = temp_1;
+            while (temp_2->down != nullptr) {
+                temp_2 = temp_2->down;
+                matrix_m2[temp_2->posX][temp_2->posY] = temp_2->data;
+            }
+            temp_1 = temp_1->next;
+        }
+        //------------------------------------------------------------
+        double cont;
+        //------------------------------------------------------------
+        for (int i = 0; i < m2.columns; i++) {
+            for (int j = 0; j < m1.rows; j++) {
+                matrix_mult[i][j] = 0;
+            }
+        }
+        //------------------------------------------------------------
+        for (int i = 0; i < m1.rows; i++) {
+            for (int j = 0; j < m1.columns; j++) {
+                matrix_mult[j][i] = matrix_m1[j][i] + matrix_m2[j][i];
+            }
+        }
+        //------------------------------------------------------------
+        for (int i = 0; i < m1.rows; i++) {
+            for (int j = 0; j < m2.columns; j++) {
+                if (matrix_mult[j][i] != 0) {
+                    resultado.insert(i, j, matrix_mult[j][i]);
+                }
+            }
+        }
+        //------------------------------------------------------------
+    }
+    return resultado;
+}
+
+Matrix<double> transpose(Matrix<double> m1){
+    Matrix<double> resultado;
+    Node<double>* temp_1 = m1.x;
+    Node<double>* temp_2;
+    //------------------------------------------------------------
+    while (temp_1 != nullptr) {
+        temp_2 = temp_1;
+        while (temp_2->down != nullptr) {
+            temp_2 = temp_2->down;
+            resultado.insert(temp_2->posX,temp_2->posY,temp_2->data);
+        }
+        temp_1 = temp_1->next;
+    }
+    //------------------------------------------------------------
+    return resultado;
+}
 
 int main( int, char * [])
 {
     srand(time(NULL));
-    Matrix<double> m1 = Matrix<double>::identity(10,10);
-    /*for(int i= 0; i < 10; i++) //es de 100
+    Matrix<double> m1;
+    for(int i= 0; i < 10; i++) //es de 100
         m1.insert(rand()%10,rand()%10,rand()%25);//(f,c,val)
-    */cout << m1 << endl; // print in console
+    cout << m1 << endl; // print in console
     m1.erase(100,2); // delete(f,c)
-    Matrix<double> m2 = Matrix<double>::identity(m1.rows,m1.columns); //f,c
+    Matrix<double> m2 = Matrix<double>::identity(m1.rows,m1.rows); //f,c
     ofstream _out("res.txt");
     _out << m2 << endl; // print in file
     _out.close();
-    //cout << mult(m1,m2) << endl; //  mutiplication
-    //cout << add(m1,m2) << endl; // addition
-    //cout << transpose(m1) << endl; // transpose
+    cout << mult(m1,m2) << endl; //  mutiplication
+    cout << add(m1,m1) << endl; // addition
+    cout << transpose(m1) << endl; // transpose
     //cout << inv(m1) << endl; // Inversa - Extra!
     // Cargar desde imagen -  Extra (Usar CImg.h)
     //Matrix<double> m_image = load_from_image("lenna.jpg");//512x512
