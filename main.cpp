@@ -242,6 +242,7 @@ Matrix<double> mult (Matrix<double> m1,Matrix<double> m2){
                 matrix_m2[temp_2->posX][temp_2->posY] = temp_2->data;
             }
             temp_1 = temp_1->next;
+
         }
         //------------------------------------------------------------
         double cont;
@@ -304,6 +305,7 @@ Matrix<double> add (Matrix<double> m1,Matrix<double> m2){
         for (int i = 0; i < m2.columns; i++) {
             for (int j = 0; j < m2.rows; j++) {
                 matrix_m2[i][j] = 0;
+                matrix_mult[i][j]=0;
             }
         }
         //------------------------------------------------------------
@@ -317,12 +319,7 @@ Matrix<double> add (Matrix<double> m1,Matrix<double> m2){
         }
         //------------------------------------------------------------
         double cont;
-        //------------------------------------------------------------
-        for (int i = 0; i < m2.columns; i++) {
-            for (int j = 0; j < m1.rows; j++) {
-                matrix_mult[i][j] = 0;
-            }
-        }
+
         //------------------------------------------------------------
         for (int i = 0; i < m1.rows; i++) {
             for (int j = 0; j < m1.columns; j++) {
