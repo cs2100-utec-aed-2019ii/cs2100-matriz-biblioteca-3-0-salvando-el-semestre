@@ -242,7 +242,6 @@ Matrix<double> mult (Matrix<double> m1,Matrix<double> m2){
                 matrix_m2[temp_2->posX][temp_2->posY] = temp_2->data;
             }
             temp_1 = temp_1->next;
-
         }
         //------------------------------------------------------------
         double cont;
@@ -305,7 +304,6 @@ Matrix<double> add (Matrix<double> m1,Matrix<double> m2){
         for (int i = 0; i < m2.columns; i++) {
             for (int j = 0; j < m2.rows; j++) {
                 matrix_m2[i][j] = 0;
-                matrix_mult[i][j]=0;
             }
         }
         //------------------------------------------------------------
@@ -319,7 +317,12 @@ Matrix<double> add (Matrix<double> m1,Matrix<double> m2){
         }
         //------------------------------------------------------------
         double cont;
-
+        //------------------------------------------------------------
+        for (int i = 0; i < m2.columns; i++) {
+            for (int j = 0; j < m1.rows; j++) {
+                matrix_mult[i][j] = 0;
+            }
+        }
         //------------------------------------------------------------
         for (int i = 0; i < m1.rows; i++) {
             for (int j = 0; j < m1.columns; j++) {
@@ -355,6 +358,82 @@ Matrix<double> transpose(Matrix<double> m1){
     //------------------------------------------------------------
     return resultado;
 }
+Matrix<double> inv (Matrix<double> m1) {
+    Matrix<double> resultado_adjunta;
+    Matrix<double> resultado_inv;
+    double matrix_adjunta[m1.columns][m1.rows];
+    double matrix_transp[m1.columns][m1.rows];
+    double matrix_Normal[m1.columns][m1.rows];
+    Node<double> *temp_1 = m1.x;
+    Node<double> *temp_2;
+    double determinante=0;
+
+        //-----------------------------------------------------------
+        for (int i = 0; i < m1.columns; i++) {
+            for (int j = 0; j < m1.rows; j++) {
+                matrix_adjunta[i][j] = 0;
+                matrix_Normal[i][j]=0;
+                matrix_transp[i][j]=0;
+            }
+        }
+
+        while (temp_1 != nullptr) {
+            temp_2 = temp_1;
+            while (temp_2->down != nullptr) {
+                temp_2 = temp_2->down;
+                matrix_adjunta[temp_2->posX][temp_2->posY] = temp_2->data;
+                matrix_Normal[temp_2->posX][temp_2->posY]=temp_2->data;
+            }
+            temp_1 = temp_1->next;
+        }
+        //--------------------------------------------------------
+        for (int i = 0; i < m1.columns; i++) {
+            for (int j = 0; j < m1.rows; ++j) {
+                matrix_adjunta[i][j] = pow(-1, i + j) * matrix_adjunta[i][j];
+            }
+
+        }
+        //--------------------------------------------------------
+        for (int i = 0; i < m1.rows; i++) {
+            for (int j = 0; j < m1.columns; j++) {
+                if (matrix_adjunta[j][i] != 0) {
+                    resultado_adjunta.insert(i, j, matrix_adjunta[j][i]);
+                }
+            }
+        }
+        //--------------------------------------------------------
+        resultado_adjunta=transpose(resultado_adjunta);
+
+        //--------------------------------------------
+        temp_1 = resultado_adjunta.x;
+        temp_2;
+        while (temp_1 != nullptr) {
+            temp_2 = temp_1;
+            while (temp_2->down != nullptr) {
+                temp_2 = temp_2->down;
+                matrix_transp[temp_2->posX][temp_2->posY] = temp_2->data;
+            }
+            temp_1 = temp_1->next;
+        }
+        for (int i = 0; i < m1.columns; i++) {
+            for (int j = 0; j < m1.rows; ++j) {
+                determinante=determinante+(matrix_Normal[i][j]+matrix_transp[i][j]) ;
+            }
+        }
+        //---------------------------------------------------------
+        for (int i = 0; i < m1.rows; i++) {
+            for (int j = 0; j < m1.columns; j++) {
+                if (matrix_adjunta[j][i] != 0) {
+                    resultado_inv.insert(i, j, matrix_adjunta[j][i]/determinante);
+                }
+            }
+        }
+        //--------------------------------------------------------
+        return resultado_inv;
+
+
+
+}
 
 int main( int, char * [])
 {
@@ -371,7 +450,7 @@ int main( int, char * [])
     cout << mult(m1,m2) << endl; //  mutiplication
     cout << add(m1,m1) << endl; // addition
     cout << transpose(m1) << endl; // transpose
-    //cout << inv(m1) << endl; // Inversa - Extra!
+    cout << inv(m1) << endl; // Inversa - Extra!
     // Cargar desde imagen -  Extra (Usar CImg.h)
     //Matrix<double> m_image = load_from_image("lenna.jpg");//512x512
     //ofstream _out_i("res.txt");
